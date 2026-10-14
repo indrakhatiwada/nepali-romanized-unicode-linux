@@ -1,0 +1,53 @@
+default partial alphanumeric_keys
+xkb_symbols "unicode_romanized" {
+    name[Group1] = "Nepali Unicode Romanized";
+    include "level3(ralt_switch)"
+
+    key <AB01> { type="FOUR_LEVEL", [ 0x1000937, 0x100090B, 0x100007A, 0x100005A ] };
+    key <AB02> { type="FOUR_LEVEL", [ 0x1000921, 0x1000922, 0x1000078, 0x1000058 ] };
+    key <AB03> { type="FOUR_LEVEL", [ 0x100091A, 0x100091B, 0x1000063, 0x1000043 ] };
+    key <AB04> { type="FOUR_LEVEL", [ 0x1000935, 0x1000901, 0x1000076, 0x1000056 ] };
+    key <AB05> { type="FOUR_LEVEL", [ 0x100092C, 0x100092D, 0x1000062, 0x1000042 ] };
+    key <AB06> { type="FOUR_LEVEL", [ 0x1000928, 0x1000923, 0x100006E, 0x100004E ] };
+    key <AB07> { type="FOUR_LEVEL", [ 0x100092E, 0x1000902, 0x100006D, 0x100004D ] };
+    key <AB08> { type="FOUR_LEVEL", [ 0x100002C, 0x1000919, 0x100003C, 0x100003C ] };
+    key <AB09> { type="FOUR_LEVEL", [ 0x1000964, 0x100002E, 0x100003E, 0x100003E ] };
+    key <AB10> { type="FOUR_LEVEL", [ 0x100094D, 0x100003F, 0x100002F, 0x100003F ] };
+    key <AC01> { type="FOUR_LEVEL", [ 0x100093E, 0x1000906, 0x1000061, 0x1000041 ] };
+    key <AC02> { type="FOUR_LEVEL", [ 0x1000938, 0x1000936, 0x1000073, 0x1000053 ] };
+    key <AC03> { type="FOUR_LEVEL", [ 0x1000926, 0x1000927, 0x1000064, 0x1000044 ] };
+    key <AC04> { type="FOUR_LEVEL", [ 0x1000909, 0x100090A, 0x1000066, 0x1000046 ] };
+    key <AC05> { type="FOUR_LEVEL", [ 0x1000917, 0x1000918, 0x1000067, 0x1000047 ] };
+    key <AC06> { type="FOUR_LEVEL", [ 0x1000939, 0x1000905, 0x1000068, 0x1000048 ] };
+    key <AC07> { type="FOUR_LEVEL", [ 0x100091C, 0x100091D, 0x100006A, 0x100004A ] };
+    key <AC08> { type="FOUR_LEVEL", [ 0x1000915, 0x1000916, 0x100006B, 0x100004B ] };
+    key <AC09> { type="FOUR_LEVEL", [ 0x1000932, 0x1000965, 0x100006C, 0x100004C ] };
+    key <AC10> { type="FOUR_LEVEL", [ 0x100003B, 0x100003A, 0x100003B, 0x100003A ] };
+    key <AC11> { type="FOUR_LEVEL", [ 0x1000027, 0x1000022, 0x1000027, 0x1000022 ] };
+    key <AD01> { type="FOUR_LEVEL", [ 0x100091F, 0x1000920, 0x1000071, 0x1000051 ] };
+    key <AD02> { type="FOUR_LEVEL", [ 0x100094C, 0x1000914, 0x1000077, 0x1000057 ] };
+    key <AD03> { type="FOUR_LEVEL", [ 0x1000947, 0x1000948, 0x1000065, 0x1000045 ] };
+    key <AD04> { type="FOUR_LEVEL", [ 0x1000930, 0x1000943, 0x1000072, 0x1000052 ] };
+    key <AD05> { type="FOUR_LEVEL", [ 0x1000924, 0x1000925, 0x1000074, 0x1000054 ] };
+    key <AD06> { type="FOUR_LEVEL", [ 0x100092F, 0x100091E, 0x1000079, 0x1000059 ] };
+    key <AD07> { type="FOUR_LEVEL", [ 0x1000941, 0x1000942, 0x1000075, 0x1000055 ] };
+    key <AD08> { type="FOUR_LEVEL", [ 0x100093F, 0x1000940, 0x1000069, 0x1000049 ] };
+    key <AD09> { type="FOUR_LEVEL", [ 0x100094B, 0x1000913, 0x100006F, 0x100004F ] };
+    key <AD10> { type="FOUR_LEVEL", [ 0x100092A, 0x100092B, 0x1000070, 0x1000050 ] };
+    key <AD11> { type="FOUR_LEVEL", [ 0x1000907, 0x1000908, 0x100005B, 0x100007B ] };
+    key <AD12> { type="FOUR_LEVEL", [ 0x100090F, 0x1000910, 0x100005D, 0x100007D ] };
+    key <AE01> { type="FOUR_LEVEL", [ 0x1000967, 0x1000021, 0x1000031, 0x1000021 ] };
+    key <AE02> { type="FOUR_LEVEL", [ 0x1000968, 0x1000040, 0x1000032, 0x1000040 ] };
+    key <AE03> { type="FOUR_LEVEL", [ 0x1000969, 0x1000023, 0x1000033, 0x1000023 ] };
+    key <AE04> { type="FOUR_LEVEL", [ 0x100096A, 0x1000930, 0x1000034, 0x1000024 ] };
+    key <AE05> { type="FOUR_LEVEL", [ 0x100096B, 0x1000025, 0x1000035, 0x1000025 ] };
+    key <AE06> { type="FOUR_LEVEL", [ 0x100096C, 0x100005E, 0x1000036, 0x100005E ] };
+    key <AE07> { type="FOUR_LEVEL", [ 0x100096D, 0x1000026, 0x1000037, 0x1000026 ] };
+    key <AE08> { type="FOUR_LEVEL", [ 0x100096E, 0x100002A, 0x1000038, 0x100002A ] };
+    key <AE09> { type="FOUR_LEVEL", [ 0x100096F, 0x1000028, 0x1000039, 0x1000028 ] };
+    key <AE10> { type="FOUR_LEVEL", [ 0x1000966, 0x1000029, 0x1000030, 0x1000029 ] };
+    key <AE11> { type="FOUR_LEVEL", [ 0x100002D, 0x100005F, 0x100002D, 0x100005F ] };
+    key <AE12> { type="FOUR_LEVEL", [ 0x100200D, 0x100200C, 0x100003D, 0x100002B ] };
+    key <BKSL> { type="FOUR_LEVEL", [ 0x1000950, 0x1000903, 0x100005C, 0x100007C ] };
+    key <TLDE> { type="FOUR_LEVEL", [ 0x100093C, 0x100093D, 0x1000060, 0x100007E ] };
+};

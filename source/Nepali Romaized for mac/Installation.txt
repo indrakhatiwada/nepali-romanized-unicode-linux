@@ -1,0 +1,6 @@
+1. Copy Nepali Romanized Unicode.icns and Nepali Romanized Unicode.keylayout inside Library/Keyboard Layouts
+2. log off the system
+3. After login go to Systemt Preferences and select Language & Text
+4. Click Input Sources
+5. Select Nepali Romanized.
+6. The input will appear on the top of bar. Default you see US flag icon. Click on this icon and choose Nepali Flag icon for Nepali Input
