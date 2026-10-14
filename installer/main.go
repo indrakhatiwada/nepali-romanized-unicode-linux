@@ -1,10 +1,12 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -12,6 +14,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
+
+//go:embed data/*
+var embeddedScripts embed.FS
 
 type item struct {
 	title string
@@ -37,25 +42,94 @@ const (
 )
 
 type model struct {
-	state  int
-	width  int
-	height int
-	menu   list.Model
-	spin   spinner.Model
-	log    viewport.Model
-	active string
+	state           int
+	width           int
+	height          int
+	menu            list.Model
+	spin            spinner.Model
+	log             viewport.Model
+	active          string
+	fontsInstalled  bool
+	userInstalled   bool
+	systemInstalled bool
+	toggleInstalled bool
 }
 
-func initialModel() model {
-	items := []list.Item{
-		item{"Install (user-level)", "No sudo. ~/.config/xkb"},
-		item{"Install (system-wide)", "Requires sudo. /usr/share/X11/xkb"},
-		item{"Install Devanagari fonts", "Download from distro repos"},
+func detectUserLayoutInstalled() bool {
+	base := filepath.Join(os.Getenv("HOME"), ".config", "xkb")
+	if _, err := os.Stat(filepath.Join(base, "symbols", "nepali_unicode_romanized")); err != nil {
+		return false
+	}
+	b, err := os.ReadFile(filepath.Join(base, "rules", "evdev.xml"))
+	if err != nil {
+		return false
+	}
+	return strings.Contains(string(b), "nepali_unicode_romanized")
+}
+
+func detectSystemLayoutInstalled() bool {
+	base := "/usr/share/X11/xkb"
+	if _, err := os.Stat(filepath.Join(base, "symbols", "nepali_unicode_romanized")); err != nil {
+		return false
+	}
+	b, err := os.ReadFile(filepath.Join(base, "rules", "evdev.xml"))
+	if err != nil {
+		return false
+	}
+	return strings.Contains(string(b), "nepali_unicode_romanized")
+}
+
+func detectFontsInstalled() bool {
+	out, err := exec.Command("fc-list", ":", "family").CombinedOutput()
+	if err != nil {
+		return false
+	}
+	return strings.Contains(string(out), "Devanagari")
+}
+
+func detectToggleInstalled() bool {
+	data, err := os.ReadFile(filepath.Join(os.Getenv("HOME"), ".config", "hypr", "input.lua"))
+	if err != nil {
+		return false
+	}
+	s := string(data)
+	return strings.Contains(s, "nepali_unicode_romanized") && strings.Contains(s, "grp:alt_shift_toggle")
+}
+
+func menuItems(fontsInstalled, userInstalled, systemInstalled, toggleInstalled bool) []list.Item {
+	fontDesc := "Optional download if missing"
+	if fontsInstalled {
+		fontDesc = "Installed"
+	}
+	userDesc := "Not installed"
+	if userInstalled {
+		userDesc = "Installed"
+	}
+	systemDesc := "Not installed"
+	if systemInstalled {
+		systemDesc = "Installed"
+	}
+	toggleDesc := "Not applied"
+	if toggleInstalled {
+		toggleDesc = "Applied"
+	}
+	return []list.Item{
+		item{"Install (user-level)", "No sudo. ~/.config/xkb (" + userDesc + ")"},
+		item{"Install (system-wide)", "Requires sudo. /usr/share/X11/xkb (" + systemDesc + ")"},
+		item{"Install Devanagari fonts", fontDesc},
 		item{"Validate layout", "xkbcli compile-keymap test"},
-		item{"Enable Alt+Shift toggle (apply)", "Opt-in config changes"},
+		item{"Enable Alt+Shift toggle (apply)", toggleDesc},
 		item{"Show verified install command", "Print secure one-liner"},
 		item{"Exit", "Quit"},
 	}
+}
+
+func initialModel() model {
+	f := detectFontsInstalled()
+	u := detectUserLayoutInstalled()
+	si := detectSystemLayoutInstalled()
+	tm := detectToggleInstalled()
+	items := menuItems(f, u, si, tm)
 	m := list.New(items, list.NewDefaultDelegate(), 80, 24)
 	m.Title = "Nepali Unicode Romanized"
 	m.SetShowStatusBar(true)
@@ -66,7 +140,7 @@ func initialModel() model {
 	m.Title = lg.Render("Nepali Unicode Romanized Installer")
 	vp := viewport.New(80, 24)
 	vp.SetContent("No output yet.")
-	return model{state: stateMenu, menu: m, spin: s, log: vp}
+	return model{state: stateMenu, menu: m, spin: s, log: vp, fontsInstalled: f, userInstalled: u, systemInstalled: si, toggleInstalled: tm}
 }
 
 func sidecar(name string) string {
@@ -83,7 +157,7 @@ func sidecar(name string) string {
 			return c
 		}
 	}
-	return ""
+	return deployEmbedded(name)
 }
 
 func runCommand(name, cmd string, args ...string) runResult {
@@ -98,26 +172,55 @@ func runCommand(name, cmd string, args ...string) runResult {
 
 func runFonts() runResult {
 	candidates := []struct {
-		cmd  string
-		args []string
+		pm   string
+		file string
+		str  string
 	}{
-		{"pacman", []string{"-S", "--needed", "--noconfirm", "noto-fonts"}},
-		{"apt-get", []string{"install", "-y", "fonts-noto"}},
-		{"dnf", []string{"install", "-y", "google-noto-sans-devanagari-fonts"}},
+		{"pacman", "pacman", "sudo pacman -S --needed --noconfirm noto-fonts"},
+		{"apt-get", "apt-get", "sudo apt-get install -y fonts-noto"},
+		{"dnf", "dnf", "sudo dnf install -y google-noto-sans-devanagari-fonts"},
 	}
-	var tried []string
+	tried := []string{}
 	for _, c := range candidates {
-		path, err := exec.LookPath(c.cmd)
-		if err != nil {
+		if _, err := exec.LookPath(c.pm); err != nil {
 			continue
 		}
-		tried = append(tried, c.cmd)
-		res := runCommand("Install Devanagari fonts", path, c.args...)
+		sudo, err := exec.LookPath("sudo")
+		if err != nil {
+			return runResult{name: "Install Devanagari fonts", out: "sudo not found; install fonts manually", err: fmt.Errorf("sudo missing")}
+		}
+		tried = append(tried, c.pm)
+		res := runCommand("Install Devanagari fonts", sudo, "pacman", "-S", "--needed", "--noconfirm", "noto-fonts")
+		if c.pm == "apt-get" {
+			res = runCommand("Install Devanagari fonts", sudo, "apt-get", "install", "-y", "fonts-noto")
+		}
+		if c.pm == "dnf" {
+			res = runCommand("Install Devanagari fonts", sudo, "dnf", "install", "-y", "google-noto-sans-devanagari-fonts")
+		}
 		if res.err == nil {
 			return res
 		}
 	}
-	return runResult{name: "Install Devanagari fonts", out: "No supported package manager found or all installs failed", err: fmt.Errorf("package install failed")}
+	if len(tried) == 0 {
+		return runResult{name: "Install Devanagari fonts", out: "No supported package manager found (pacman/apt/dnf).", err: fmt.Errorf("unsupported distro")}
+	}
+	return runResult{name: "Install Devanagari fonts", out: "All supported package installs failed.", err: fmt.Errorf("package install failed")}
+}
+
+func deployEmbedded(name string) string {
+	data, err := embeddedScripts.ReadFile("data/" + name)
+	if err != nil {
+		return ""
+	}
+	dir, err := os.MkdirTemp("", "nepali-tui-*")
+	if err != nil {
+		return ""
+	}
+	path := filepath.Join(dir, name)
+	if err := os.WriteFile(path, data, 0755); err != nil {
+		return ""
+	}
+	return path
 }
 
 func taskCmd(choice string) tea.Cmd {
@@ -150,7 +253,7 @@ func taskCmd(choice string) tea.Cmd {
 				res = runCommand(choice, "bash", script, "--apply")
 			}
 		case "Show verified install command":
-			res = runResult{name: choice, out: "tmp=$(mktemp -d)\ncurl -fsSL https://YOUR-HOST/install-nepali-unicode-romanized.sh -o \"$tmp/install.sh\"\ncurl -fsSL https://YOUR-HOST/install.sha256 -o \"$tmp/install.sha256\"\n(cd \"$tmp\" && sha256sum -c install.sha256) || exit 1\nbash \"$tmp/install.sh\" --yes", err: nil}
+			res = runResult{name: choice, out: "tmp=$(mktemp -d)\ncurl -fsSL https://raw.githubusercontent.com/indrakhatiwada/nepali-romanized-unicode-linux/main/install-nepali-unicode-romanized.sh -o \"$tmp/install.sh\"\ncurl -fsSL https://raw.githubusercontent.com/indrakhatiwada/nepali-romanized-unicode-linux/main/install.sha256 -o \"$tmp/install.sha256\"\n(cd \"$tmp\" && sha256sum -c install.sha256) || exit 1\nbash \"$tmp/install.sh\" --yes", err: nil}
 		default:
 			res = runResult{name: choice, out: "done", err: nil}
 		}
@@ -211,6 +314,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		out := r.out
 		if r.err != nil {
 			out += "\n\nERROR: " + r.err.Error()
+		}
+		if r.name == "Install (user-level)" && r.err == nil {
+			m.userInstalled = true
+			m.menu.SetItems(menuItems(m.fontsInstalled, true, m.systemInstalled, m.toggleInstalled))
+		}
+		if r.name == "Install (system-wide)" && r.err == nil {
+			m.systemInstalled = true
+			m.menu.SetItems(menuItems(m.fontsInstalled, m.userInstalled, true, m.toggleInstalled))
+		}
+		if r.name == "Install Devanagari fonts" && r.err == nil {
+			m.fontsInstalled = true
+			m.menu.SetItems(menuItems(true, m.userInstalled, m.systemInstalled, m.toggleInstalled))
+		}
+		if r.name == "Enable Alt+Shift toggle (apply)" && r.err == nil {
+			m.toggleInstalled = true
+			m.menu.SetItems(menuItems(m.fontsInstalled, m.userInstalled, m.systemInstalled, true))
 		}
 		m.log.SetContent(out)
 		m.log.GotoTop()

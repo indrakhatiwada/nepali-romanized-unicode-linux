@@ -4,7 +4,7 @@ Primary target: **Arch Linux** (Hyprland/Wayland tested).
 Also supported: Debian/Ubuntu and Fedora.
 
 Converted from the macOS `Nepali Romanized Unicode.keylayout`
-(`/tmp/opencode/nepali_romanized_for_mac_fnfx5xz.zip`) into an XKB layout usable
+into an XKB layout usable
 on modern Linux (X11 and Wayland via libxkbcommon).
 
 ## Generated identifiers
@@ -20,8 +20,8 @@ on modern Linux (X11 and Wayland via libxkbcommon).
 ## One-line verified install
 ```bash
 tmp=$(mktemp -d)
-curl -fsSL https://YOUR-HOST/install-nepali-unicode-romanized.sh -o "$tmp/install.sh"
-curl -fsSL https://YOUR-HOST/install.sha256 -o "$tmp/install.sha256"
+curl -fsSL https://raw.githubusercontent.com/indrakhatiwada/nepali-romanized-unicode-linux/main/install-nepali-unicode-romanized.sh -o "$tmp/install.sh"
+curl -fsSL https://raw.githubusercontent.com/indrakhatiwada/nepali-romanized-unicode-linux/main/install.sha256 -o "$tmp/install.sha256"
 (cd "$tmp" && sha256sum -c install.sha256) || exit 1
 bash "$tmp/install.sh" --yes
 ```
@@ -37,7 +37,6 @@ Should exit with code `0`.
 
 ## Install — user-level (no sudo, recommended)
 ```bash
-cd /home/indra/Desktop/exp/nepali-romanized-linux
 ./install-user.sh
 ```
 This installs into `~/.config/xkb` and registers the layout in
@@ -124,6 +123,11 @@ Build:
 cd installer
 go build -o nepali-tui-installer
 ./nepali-tui-installer
+```
+Run without build:
+```bash
+cd installer
+go run .
 ```
 Features: scope selection, optional fonts, validation, verified command output.
 
